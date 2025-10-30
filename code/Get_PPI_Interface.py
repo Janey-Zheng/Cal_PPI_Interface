@@ -27,6 +27,7 @@ for filename in os.listdir(pdb_dir):
     
     object_name = f"obj_{pdb_id}"
     cmd.load(pdb_path, object_name)
+    cmd.remove("not polymer")
     chains = cmd.get_chains(object_name)
     chain1 = chains[0]
     chain2 = chains[1]
@@ -58,3 +59,4 @@ wb.save(output_excel)
 # # 分析
 # res = interfaceResidues("myComplex", chainA, chainB, 1.0, "intf")
 # print(res)
+
