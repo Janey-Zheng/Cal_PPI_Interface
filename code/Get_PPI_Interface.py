@@ -4,12 +4,12 @@ from interfaceResidues import interfaceResidues
 import os
 import openpyxl
 
-# 启动 PyMOL（不显示 GUI）
+# Launch PyMOL（Do not display GUI）
 pymol.finish_launching(['pymol', '-cq'])
 
 pdb_dir = r"F:/Data_0822/database/structures/database_pdb"
 output_excel = r"F:/Data_0822/Interface/Interface_Results.xlsx"
-cutoff = 1.0  # ΔSASA 阈值
+cutoff = 1.0  # ΔSASA cutoff
 
 wb = openpyxl.Workbook()
 ws = wb.active
@@ -22,19 +22,23 @@ for filename in os.listdir(pdb_dir):
     pdb_path = os.path.join(pdb_dir, filename)
     print(f"Processing {pdb_id}...")
     
-    # 重置 PyMOL 环境
+    # Reset the PyMOL environment
     cmd.reinitialize()
     
     object_name = f"obj_{pdb_id}"
     cmd.load(pdb_path, object_name)
-    cmd.remove("not polymer")
+    cmd.remove("not polymer")  # 全局删除所有非polymer原子（如NAG、SO4、水）
     chains = cmd.get_chains(object_name)
-    chain1 = chains[0]
-    chain2 = chains[1]
+    length = {ch: cmd.count_atoms(f"{object_name} and c. {ch} and name CA")
+        for ch in chains}
+    # 取长度排名前两位的链 ID
+    chain1, chain2 = sorted(length, key=length.get, reverse=True)[:2]
+    # chain1 = chains[0]
+    # chain2 = chains[1]
     c1 = f"c. {chain1}"
     c2 = f"c. {chain2}"
     
-    # 进行界面残基的识别
+    # Identification of interface residues
     res_list = interfaceResidues(object_name, c1, c2, cutoff)
     interface1 = []
     interface2 = []
@@ -56,7 +60,5 @@ wb.save(output_excel)
 # chains = cmd.get_chains("myComplex")
 # chainA = f"c. {chains[0]}"
 # chainB = f"c. {chains[1]}"
-# # 分析
 # res = interfaceResidues("myComplex", chainA, chainB, 1.0, "intf")
 # print(res)
-
